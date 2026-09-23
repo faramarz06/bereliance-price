@@ -1,16 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getMarketData } from '@/lib/market-service';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 900; // 15 minutes cache
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const data = await getMarketData();
     return NextResponse.json(data, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=1800',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
   } catch (error) {

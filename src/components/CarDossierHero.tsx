@@ -12,18 +12,34 @@ import {
   Calendar,
   Gauge,
   Palette,
+  RefreshCw,
 } from 'lucide-react';
 import { toPersianDigits } from '@/lib/persian-utils';
+import { SpecificCarValuation } from '@/lib/types';
 
 interface CarDossierHeroProps {
+  valuation: SpecificCarValuation;
   lastUpdated: string;
   secondsUntilRefresh: number;
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
 export const CarDossierHero: React.FC<CarDossierHeroProps> = ({
+  valuation,
   lastUpdated,
   secondsUntilRefresh,
+  onRefresh,
+  isRefreshing,
 }) => {
+  const formattedTime = lastUpdated
+    ? new Date(lastUpdated).toLocaleTimeString('fa-IR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    : '';
+
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950/90 border-2 border-blue-500/40 p-6 sm:p-8 shadow-2xl">
       {/* Decorative ambient background glows */}
@@ -31,19 +47,19 @@ export const CarDossierHero: React.FC<CarDossierHeroProps> = ({
       <div className="absolute bottom-0 left-0 -ml-28 -mb-28 w-96 h-96 rounded-full bg-emerald-600/15 blur-3xl pointer-events-none"></div>
 
       <div className="relative z-10 space-y-6">
-        {/* Top Header Badge & Live Auto-Update Pill */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+        {/* Top Bar: Title, Live Refresh Action & Auto-Update Countdown */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/30 shrink-0">
-              <Car className="w-6 h-6 text-white" />
+            <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/30 shrink-0">
+              <Car className="w-7 h-7 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  شناسنامه اختصاصی خودرو
+                  شناسنامه اختصاصی و ارزیابی زنده
                 </span>
                 <span className="text-xs text-slate-400">
-                  شماره شاسی: <span className="font-mono text-slate-300">NAPH320BBJ1015714</span>
+                  شماره شاسی: <span className="font-mono text-slate-300">{valuation.carInfo.chassisNumber}</span>
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-white mt-1">
@@ -52,16 +68,35 @@ export const CarDossierHero: React.FC<CarDossierHeroProps> = ({
             </div>
           </div>
 
-          {/* Live Auto-Refresh Indicator */}
-          <div className="flex items-center gap-2 self-start sm:self-auto bg-slate-950/80 px-3.5 py-1.5 rounded-xl border border-slate-800 text-xs">
-            <span className="flex h-2.5 w-2.5 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-emerald-400 font-semibold">بروزرسانی خودکار فعال:</span>
-            <span className="text-slate-300 font-mono font-bold">
-              {toPersianDigits(secondsUntilRefresh)} ثانیه
-            </span>
+          {/* Action Bar: Manual Instant Refresh + Auto-Update Status */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Prominent Instant Refresh Button */}
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 disabled:opacity-60 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'در حال استعلام زنده ۴ منبع...' : 'استعلام و بروزرسانی لحظه‌ای منابع'}</span>
+            </button>
+
+            {/* Auto-Refresh Timer Pill */}
+            <div className="flex items-center gap-2 bg-slate-950/80 px-3.5 py-2 rounded-xl border border-slate-800 text-xs">
+              <span className="flex h-2.5 w-2.5 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span className="text-slate-400">آپدیت خودکار در:</span>
+              <span className="text-emerald-400 font-mono font-bold">
+                {toPersianDigits(secondsUntilRefresh)} ثانیه
+              </span>
+              {formattedTime && (
+                <span className="text-[11px] text-slate-500 border-r border-slate-700 pr-2 mr-1">
+                  آخرین ثبت: {toPersianDigits(formattedTime)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -74,7 +109,7 @@ export const CarDossierHero: React.FC<CarDossierHeroProps> = ({
             </div>
             <div>
               <span className="text-[11px] text-slate-400 block">مدل و سال ساخت:</span>
-              <span className="text-sm font-black text-white">فقط مدل ۱۳۹۷</span>
+              <span className="text-sm font-black text-white">منحصراً مدل ۱۳۹۷</span>
               <span className="text-[10px] text-blue-400 block">موتور بزرگ ۱۶۵۰ سی‌سی</span>
             </div>
           </div>
@@ -87,7 +122,7 @@ export const CarDossierHero: React.FC<CarDossierHeroProps> = ({
             <div>
               <span className="text-[11px] text-slate-400 block">کارکرد دقیق خودرو:</span>
               <span className="text-sm font-black text-indigo-300 font-mono">
-                ۱۴۵,۰۰۰ کیلومتر
+                {toPersianDigits(valuation.carInfo.mileage.toLocaleString('en-US'))} کیلومتر
               </span>
               <span className="text-[10px] text-slate-400 block">ثبت شده در کارشناسی</span>
             </div>
@@ -127,16 +162,16 @@ export const CarDossierHero: React.FC<CarDossierHeroProps> = ({
             <div className="flex items-center gap-2">
               <FileCheck className="w-5 h-5 text-blue-400" />
               <h2 className="text-sm font-bold text-white">
-                گزارش رسمی برگه کارشناسی کارشناس پایتخت (شماره برگه: ۱۰۱۲۹۳۴۱۲۸)
+                گزارش رسمی برگه کارشناسی کارشناس پایتخت (شماره برگه: {toPersianDigits(valuation.carInfo.inspectionCode)})
               </h2>
             </div>
             <a
-              href="https://es.karshenaspaytakht.com/F/1012934128"
+              href={valuation.carInfo.inspectionUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-bold transition-all w-fit"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-bold transition-all w-fit"
             >
-              <span>مشاهده مستقیم برگه در سامانه کارشناسی</span>
+              <span>مشاهده مستقیم برگه در سامانه کارشناسی پایتخت</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -164,7 +199,7 @@ export const CarDossierHero: React.FC<CarDossierHeroProps> = ({
                 </li>
                 <li className="flex items-center gap-1.5 text-amber-300">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>سینی عقب ضربه ترافیکی جزئی (بدون آسیب به شاسی)</span>
+                  <span>سینی عقب ضربه ترافیکی جزئی (شاسی سالم)</span>
                 </li>
               </ul>
             </div>
